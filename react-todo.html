@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+        body {
+            text-align: center;
+        }
+        button {
+            text-align: right;
+            margin: 0px 10px;
+            align-self: right;
+        }
+        .form-control {
+            display: inline;
+            margin: 10px;
+            width: 70%;
+        }
+        .btn-primary, .btn-info{
+            margin-bottom: 9px;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                width: 40%;
+            }
+            .inputFeild {
+                width: 50%;
+            }
+            .form-control {
+            width: 70%;
+        }
+        }
+    </style>
+
+    <title>To do | Vishneswar</title>
+</head>
+<body class="container">
+    <div class="app"></div>
+
+        <script type="text/babel">
+
+            class Tasks extends React.Component {
+                constructor(props) {
+                    super(props);
+                    this.state ={
+                        tasks : [],
+                        task: "",
+                        button: 'Add',
+                        editNum: -1
+                    }
+                }
+
+            componentDidMount() {
+                let tasks = localStorage.getItem('tasks');
+                if (tasks !== null){
+                    tasks = tasks.split(',')
+                    this.setState({
+                        tasks
+                    });
+                }
+            }
+
+                render(){
+                    return (
+                        <div>
+                            <ul className="list-group">
+                                {this.state.tasks.map((element, i) => 
+                                    <li className="list-group-item" key={i}>
+                                        {element}
+                                        <button className="btn btn-light float-right" onClick={this.remove} data-index={'a-' + i} id={'a-' + i} disabled={false}>X</button>
+                                        <button className="btn btn-light float-right" onClick={this.edit} data-index={'r-' + i}>-</button>
+                                    </li>
+                                )}
+                            
+                            <li className="list-group-item">
+                                <input type="text" onChange={this.handleChange} onKeyDown={this.onKeyDown} className="form-control form-control-lg" value={this.state.task} />
+                                <button onClick={this.save} className="btn btn-primary btn-lg">{this.state.button}</button>
+                            </li>
+                            </ul>
+                        </div>
+                    )
+                }
+
+                handleChange = (event) => {
+                    this.setState({
+                        task: event.target.value
+                    });
+                }
+
+                onKeyDown =(event) => {
+                    if (event.key === 'Enter'){
+                        this.save()
+                    }
+                }
+
+                save = () => {
+                    const no = this.state.editNum
+                    this.setState( () => {
+                        if (this.state.button === 'Add' && this.state.task !== '') {
+                        return {
+                        tasks: [...this.state.tasks, this.state.task],
+                        task: ''
+                        }
+                    } else if (no >= 0){
+                        const n = this.state.editNum
+                        const tasks = this.state.tasks
+                        tasks[n] = this.state.task
+                        return {
+                            tasks,
+                            task: '',
+                            editNum: -1
+                        }
+                    }
+                    },
+                    () => {
+                        // passing it a param as js is asyc
+                        localStorage.setItem('tasks', this.state.tasks)
+                        this.setState({
+                            button: 'Add'
+                        })
+                        if (this.state.button === 'Edit') {
+                        document.querySelector(".btn-info").setAttribute('class', 'btn btn-primary btn-lg');
+                        document.querySelector("#a-" + no).disabled = false;
+                        }
+                    }); 
+                        
+                        
+                    
+                }
+
+                remove = (event) => {
+                    const n = this.getIndex(event);
+                    this.setState(() => {
+                        const tasks = [...this.state.tasks];
+                        tasks.splice(n, 1);
+                        return {
+                            tasks
+                        };
+                    },
+                    () => {
+                        // passing it a param as js is asyc
+                        localStorage.setItem('tasks', this.state.tasks)
+                    });
+                    
+                }
+
+                edit = (event) => {
+                    const n = this.getIndex(event);
+                    document.querySelector("#a-" + n).disabled = true;
+                    this.setState({
+                        task: this.state.tasks[n],
+                        button: 'Edit',
+                        editNum: n
+                    })
+                    document.querySelector(".btn-primary").setAttribute('class', 'btn btn-info btn-lg')
+                }
+
+                getIndex = (event) => {
+                    const index = event.target.dataset.index;
+                    const pattern = new RegExp('[0-9]+');
+                    const n = parseInt(pattern.exec(index)[0]);
+                    return n;
+                }
+            }
+
+            class App extends React.Component {
+                
+                render() {
+                    return (
+                    <div>
+                        <h1>To Do application</h1><br></br>
+                        <Tasks />
+                    </div>
+                )}
+            }
+
+            ReactDOM.render(
+                <App />, 
+                document.querySelector('.app'))
+            
+            
+        </script>
+
+</body>
+</html>
